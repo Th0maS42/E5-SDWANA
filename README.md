@@ -20,7 +20,7 @@ Voici la structure du projet:
 ![alt text](Structure.png)
 
 
-. Contenu du Manifest de production
+ Contenu du Manifest de production
 
 ``` bash
 # Déploiement pour Flask
@@ -149,7 +149,7 @@ spec:
 
 ```
 
-. Contenu du Manifest de préproduction
+ Contenu du Manifest de préproduction
 
 ``` bash
 # Déploiement pour Flask
@@ -297,8 +297,8 @@ k get all
 ```
 
 
-. Docker Hub repositories
+ Docker Hub repositories
 
-![alt text](dockerHub.jpg)
+![alt text](dockerHub.png)
 
 <p align="right"><a href="#readme-top">back to top</a></p>
