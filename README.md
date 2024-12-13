@@ -273,7 +273,6 @@ spec:
     nodePort: 30003  # Port NodePort exposé pour HTTPS.
 
 ```
-Les fichiers Manifest sont des descriptions YAML utilisées par Kubernetes pour orchestrer le déploiement d'applications. Voici un résumé des principaux composants utilisés et leur rôle dans le contexte de votre projet.
 
 1. Deployment
 Le composant Deployment est utilisé pour définir et gérer un ensemble de pods identiques. Il permet :
@@ -284,6 +283,7 @@ Exemple dans le manifest :
 replicas : Définit le nombre de pods à exécuter simultanément.
 selector : Permet de lier les pods créés à un Service.
 template : Contient la spécification des pods (conteneurs, variables d'environnement, volumes).
+
 2. Service
 Le Service expose les pods pour permettre la communication réseau entre eux ou avec l’extérieur. Il peut être de plusieurs types :
 
@@ -293,6 +293,7 @@ LoadBalancer : Fournit une IP publique (si cloud provider).
 Exemple dans le manifest :
 ports : Définit les ports internes et externes pour la communication.
 selector : Lie le service aux pods en fonction des labels.
+
 3. Ingress
 L’Ingress permet de gérer l'accès HTTP/HTTPS aux applications via des règles basées sur des noms d'hôte ou des chemins. C'est une alternative plus puissante au Service de type NodePort.
 
@@ -300,18 +301,21 @@ Exemple dans le manifest :
 host : Spécifie le nom de domaine ou le sous-domaine.
 path : Définit les routes URL pour les services.
 TLS : Peut être configuré pour les connexions HTTPS sécurisées.
+
 4. ConfigMap
 Un ConfigMap stocke des données de configuration sous forme de paires clé-valeur. Il permet de séparer la configuration du code de l'application.
 
 Exemple dans le manifest :
 Peut contenir des fichiers de configuration ou des paramètres injectés dans l’application.
 envFrom dans le pod : Charge directement les variables d’environnement.
+
 5. Secret
 Les Secrets permettent de gérer des données sensibles (comme des mots de passe, clés API) en sécurité. Contrairement aux ConfigMaps, ils sont encodés en Base64.
 
 Exemple dans le manifest :
 data : Contient les clés et valeurs encodées.
 envFrom ou volumeMounts dans le pod pour l’injection.
+
 6. PersistentVolumeClaim (PVC)
 Les PVCs permettent de demander un stockage persistant pour une application.
 
@@ -319,6 +323,7 @@ Relié à un PersistentVolume (PV) qui peut être hébergé sur un disque local 
 Exemple dans le manifest :
 accessModes : Indique si le stockage est accessible en lecture/écriture par un seul ou plusieurs pods.
 storageClassName : Définit la classe de stockage (e.g., SSD, HDD).
+
 7. Namespace
 Un Namespace isole les ressources Kubernetes dans un environnement dédié. Cela permet de structurer un cluster multi-tenant.
 
