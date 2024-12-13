@@ -146,7 +146,7 @@ spec:
 
  Contenu du Manifest de préproduction
 
-``` 
+``` yml
 # Déploiement pour Flask
 apiVersion: apps/v1
 kind: Deployment
