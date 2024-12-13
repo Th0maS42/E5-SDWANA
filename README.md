@@ -14,4 +14,4 @@ Zenner-Gibeaux Geoffrey Rendu
 ## Struture du projet
 
 Voici la structure du projet:
-![alt text](structure.png)
+![alt text](Structure.png)
