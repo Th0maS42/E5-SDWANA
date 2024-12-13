@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: flask-container
-        image: flask-app:latest
+        image: toniocs/flask-app:preprod
         imagePullPolicy: Never
         ports:
         - containerPort: 5000
@@ -56,7 +56,7 @@ spec:
     spec:
       containers:
       - name: fastapi-container
-        image: fast-api:latest
+        image: toniocs/fast-api:preprod
         imagePullPolicy: Never
         ports:
         - containerPort: 8000
@@ -96,7 +96,7 @@ spec:
     spec:
       containers:
       - name: third-app-container
-        image: third-app:latest
+        image: toniocs/third-app:preprod
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
