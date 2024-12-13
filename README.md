@@ -300,6 +300,6 @@ k get all
 
 . Docker Hub repositories
 
-![alt text](screen/repository.jpg)
+![alt text](dockerHub.jpg)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
