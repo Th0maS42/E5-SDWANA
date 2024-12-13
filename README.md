@@ -3,7 +3,6 @@ Zenner-Gibeaux Geoffrey Rendu
 
 
 
-
 <!-- PROJECT LOGO --> <br /> <div align="center"> <h3 align="center">Projet Kubernetes : Applications Python</h3> <p align="center"> 
 
 
@@ -302,4 +301,4 @@ k get all
 
 ![alt text](dockerHub.jpg)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right"><a href="#readme-top">back to top</a></p>
