@@ -285,7 +285,7 @@ spec:
 k apply -f "nom du fichier.yaml" -n "nom du namespace"
 ```
 
-2- AEt vous pouvez voir vos application déployer en faisant:
+2- Et vous pouvez voir vos application déployer en faisant:
 
 ``` bash
 k get all
