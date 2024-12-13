@@ -149,52 +149,52 @@ spec:
 
 ``` yml
 # Déploiement pour Flask
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apps/v1  # Version de l'API Kubernetes utilisée pour définir un déploiement.
+kind: Deployment  # Objet représentant un déploiement, permettant de gérer la montée en charge de l'application.
 metadata:
-  name: flask-app
+  name: flask-app  # Nom unique de ce déploiement, permettant son identification dans Kubernetes.
 spec:
   selector:
     matchLabels:
-      app: flask-app
+      app: flask-app  # Sélectionne les pods ayant ce label pour gérer leur état.
   template:
     metadata:
       labels:
-        app: flask-app
+        app: flask-app  # Labels attribués aux pods créés par ce déploiement.
     spec:
       containers:
-      - name: flask-container
-        image: toniocs/flask-app:preprod
-        imagePullPolicy: Never
+      - name: flask-container  # Nom donné au conteneur dans les pods.
+        image: toniocs/flask-app:preprod  # Image Docker utilisée, version préproduction.
+        imagePullPolicy: Never  # Indique que l'image doit être déjà disponible localement.
         ports:
-        - containerPort: 5000
+        - containerPort: 5000  # Port exposé par le conteneur Flask.
 ---
 # Service pour Flask (NodePort)
-apiVersion: v1
-kind: Service
+apiVersion: v1  # Version de l'API Kubernetes pour les services.
+kind: Service  # Objet Service permettant d'exposer l'application au sein ou en dehors du cluster.
 metadata:
-  name: flask-service
+  name: flask-service  # Nom unique pour identifier ce service.
 spec:
-  type: NodePort
+  type: NodePort  # Permet l'accès externe via un port spécifique du nœud Kubernetes.
   selector:
-    app: flask-app
+    app: flask-app  # Lien avec les pods ayant le label "app: flask-app".
   ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 5000
-    nodePort: 30001
+  - name: http  # Nom logique pour identifier ce port.
+    protocol: TCP  # Protocole utilisé pour la communication réseau.
+    port: 80  # Port sur lequel le service écoute.
+    targetPort: 5000  # Redirection vers le port du conteneur.
+    nodePort: 30001  # Port accessible à l'extérieur du cluster pour HTTP.
   - name: https
     protocol: TCP
-    port: 443
-    targetPort: 8080
-    nodePort: 30004
+    port: 443  # Port sécurisé pour HTTPS.
+    targetPort: 8080  # Redirection vers un port différent pour la communication sécurisée.
+    nodePort: 30004  # Port accessible à l'extérieur pour HTTPS.
 ---
 # Déploiement pour FastAPI
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fastapi-app
+  name: fastapi-app  # Nom de l'application FastAPI pour ce déploiement.
 spec:
   selector:
     matchLabels:
@@ -205,36 +205,36 @@ spec:
         app: fastapi-app
     spec:
       containers:
-      - name: fastapi-container
-        image: toniocs/fast-api:preprod
+      - name: fastapi-container  # Nom donné au conteneur FastAPI.
+        image: toniocs/fast-api:preprod  # Image Docker, version préproduction.
         imagePullPolicy: Never
         ports:
-        - containerPort: 8000
+        - containerPort: 8000  # Port sur lequel FastAPI écoute.
 ---
 # Service pour FastAPI (LoadBalancer)
 apiVersion: v1
 kind: Service
 metadata:
-  name: fastapi-service
+  name: fastapi-service  # Nom du service associé à l'application FastAPI.
 spec:
-  type: LoadBalancer
+  type: LoadBalancer  # Fournit une adresse IP publique pour accéder à l'application.
   selector:
     app: fastapi-app
   ports:
   - name: http
     protocol: TCP
-    port: 80
-    targetPort: 8000
+    port: 80  # Port d'écoute pour HTTP.
+    targetPort: 8000  # Redirection vers le port exposé par le conteneur.
   - name: https
     protocol: TCP
-    port: 443
-    targetPort: 8000
+    port: 443  # Port d'écoute pour HTTPS.
+    targetPort: 8000  # Redirection également vers FastAPI pour HTTPS.
 ---
 # Déploiement pour Third-App
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: third-app
+  name: third-app  # Nom de l'application Third-App pour ce déploiement.
 spec:
   selector:
     matchLabels:
@@ -245,33 +245,32 @@ spec:
         app: third-app
     spec:
       containers:
-      - name: third-app-container
-        image: toniocs/third-app:preprod
+      - name: third-app-container  # Nom donné au conteneur Third-App.
+        image: toniocs/third-app:preprod  # Image Docker, version préproduction.
         imagePullPolicy: Never
         ports:
-        - containerPort: 8080
+        - containerPort: 8080  # Port exposé par le conteneur Third-App.
 ---
 # Service pour Third-App (NodePort)
 apiVersion: v1
 kind: Service
 metadata:
-  name: third-app-service
+  name: third-app-service  # Nom du service lié à Third-App.
 spec:
-  type: NodePort
+  type: NodePort  # Type de service permettant un accès externe par un port statique.
   selector:
     app: third-app
   ports:
   - name: http
     protocol: TCP
-    port: 80
-    targetPort: 8080
-    nodePort: 30002
+    port: 80  # Port d'écoute pour HTTP.
+    targetPort: 8080  # Redirection vers le conteneur.
+    nodePort: 30002  # Port NodePort exposé pour HTTP.
   - name: https
     protocol: TCP
-    port: 443
-    targetPort: 8080
-    nodePort: 30003
-
+    port: 443  # Port d'écoute pour HTTPS.
+    targetPort: 8080  # Redirection vers le conteneur pour HTTPS.
+    nodePort: 30003  # Port NodePort exposé pour HTTPS.
 
 ```
 
