@@ -273,26 +273,6 @@ spec:
     nodePort: 30003  # Port NodePort exposé pour HTTPS.
 
 ```
-
-
-<!-- GETTING STARTED -->
-
-### Pour déployer les applications:
-
-1- Exécuter la commande suivante pour mettre en place vos application avec le manifest:
-
-``` bash
-k apply -f "nom du fichier.yaml" -n "nom du namespace"
-```
-
-2- Et vous pouvez voir vos application déployer en faisant:
-
-``` bash
-k get all
-```
-
-Les fichiers Manifest sont des descriptions YAML utilisées par Kubernetes pour orchestrer le déploiement d'applications. Voici un résumé des principaux composants utilisés et leur rôle dans le contexte de votre projet.
-
 1. Deployment
 Le composant Deployment est utilisé pour définir et gérer un ensemble de pods identiques. Il permet :
 
@@ -302,6 +282,7 @@ Exemple dans le manifest :
 replicas : Définit le nombre de pods à exécuter simultanément.
 selector : Permet de lier les pods créés à un Service.
 template : Contient la spécification des pods (conteneurs, variables d'environnement, volumes).
+
 2. Service
 Le Service expose les pods pour permettre la communication réseau entre eux ou avec l’extérieur. Il peut être de plusieurs types :
 
@@ -342,6 +323,23 @@ Un Namespace isole les ressources Kubernetes dans un environnement dédié. Cela
 
 Exemple dans le manifest :
 Les ressources créées dans un Namespace ne sont accessibles que dans celui-ci sauf configuration explicite.
+
+
+<!-- GETTING STARTED -->
+
+### Pour déployer les applications:
+
+1- Exécuter la commande suivante pour mettre en place vos application avec le manifest:
+
+``` bash
+k apply -f "nom du fichier.yaml" -n "nom du namespace"
+```
+
+2- Et vous pouvez voir vos application déployer en faisant:
+
+``` bash
+k get all
+```
 
 
  Docker Hub repositories
