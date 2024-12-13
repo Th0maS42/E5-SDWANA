@@ -273,6 +273,8 @@ spec:
     nodePort: 30003  # Port NodePort exposé pour HTTPS.
 
 ```
+Les fichiers Manifest sont des descriptions YAML utilisées par Kubernetes pour orchestrer le déploiement d'applications. Voici un résumé des principaux composants utilisés et leur rôle dans le contexte de votre projet.
+
 1. Deployment
 Le composant Deployment est utilisé pour définir et gérer un ensemble de pods identiques. Il permet :
 
@@ -282,7 +284,6 @@ Exemple dans le manifest :
 replicas : Définit le nombre de pods à exécuter simultanément.
 selector : Permet de lier les pods créés à un Service.
 template : Contient la spécification des pods (conteneurs, variables d'environnement, volumes).
-
 2. Service
 Le Service expose les pods pour permettre la communication réseau entre eux ou avec l’extérieur. Il peut être de plusieurs types :
 
