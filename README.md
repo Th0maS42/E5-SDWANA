@@ -17,7 +17,7 @@ Voici la structure du projet:
 
  Contenu du Manifest de production
 
-``` 
+``` yml
 # Déploiement pour Flask
 apiVersion: apps/v1
 kind: Deployment
@@ -146,7 +146,7 @@ spec:
 
  Contenu du Manifest de préproduction
 
-``` bash
+``` 
 # Déploiement pour Flask
 apiVersion: apps/v1
 kind: Deployment
