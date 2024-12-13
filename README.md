@@ -19,71 +19,265 @@ Voici la structure du projet:
 ![alt text](Structure.png)
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-. Contenu du docker-compose.yml
+. Contenu du Manifest de production
 
 ``` bash
-ersion: '3.7'
-
-services:
-  django-soft-ui:
-    # build: ./django-soft-ui-dashboard
-    image: th0m8s/django-soft-ui-dashboard:prod
-    ports:     
-      - "5084:5005"
-    networks:
-      - app_network
-
-  flask-soft-ui:
-    # build: ./apps/flask-soft-ui-design
-    image: th0m8s/flask-soft-ui-dashboard:prod
-    ports: 
-      - "5083:5008"
-    networks:
-      - app_network
-
-  flask-material-dashboard:
-    # build: ./apps/ecommerce-flask-stripe
-    image: th0m8s/flask-material-dashboard:prod
-    ports:
-      - "5082:5007"
-    networks:
-      - app_network
-
-  flask-atlantis-dark:
-    # build: ./apps/rocket-django
-    image: th0m8s/flask-atlantis-dark:prod
-    ports:      
-      - "5081:5006"
-    networks:
-      - app_network
-
-  nginx:
-    image: "nginx:mainline-alpine3.20-slim"
-    ports:      
-      - "5084:5005"
-      - "5081:5006"
-      - "5082:5007"
-      - "5083:5008"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-    networks:
-      - web_network
-    depends_on:
-      - django-soft-ui
-      - flask-soft-ui
-      - flask-material-dashboard
-      - flask-atlantis-dark
-
-networks:
-  app_network:
-    driver: bridge
-  web_network:
-    driver: bridge
+# Déploiement pour Flask
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+spec:
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      containers:
+      - name: flask-container
+        image: toniocs/flask-app:prod
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+---
+# Service pour Flask (NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+spec:
+  type: NodePort
+  selector:
+    app: flask-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 5000
+    nodePort: 30006
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8080
+    nodePort: 30007
+---
+# Déploiement pour FastAPI
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-app
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-app
+  template:
+    metadata:
+      labels:
+        app: fastapi-app
+    spec:
+      containers:
+      - name: fastapi-container
+        image: toniocs/fast-api:prod
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+---
+# Service pour FastAPI (LoadBalancer)
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: fastapi-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8000
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8000
+---
+# Déploiement pour Third-App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: third-app
+spec:
+  selector:
+    matchLabels:
+      app: third-app
+  template:
+    metadata:
+      labels:
+        app: third-app
+    spec:
+      containers:
+      - name: third-app-container
+        image: toniocs/third-app:prod
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+---
+# Service pour Third-App (NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: third-app-service
+spec:
+  type: NodePort
+  selector:
+    app: third-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+    nodePort: 30008
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8080
+    nodePort: 30009
 
 ```
+
+. Contenu du Manifest de préproduction
+
+``` bash
+# Déploiement pour Flask
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+spec:
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      containers:
+      - name: flask-container
+        image: toniocs/flask-app:preprod
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+---
+# Service pour Flask (NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+spec:
+  type: NodePort
+  selector:
+    app: flask-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 5000
+    nodePort: 30001
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8080
+    nodePort: 30004
+---
+# Déploiement pour FastAPI
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-app
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-app
+  template:
+    metadata:
+      labels:
+        app: fastapi-app
+    spec:
+      containers:
+      - name: fastapi-container
+        image: toniocs/fast-api:preprod
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+---
+# Service pour FastAPI (LoadBalancer)
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: fastapi-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8000
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8000
+---
+# Déploiement pour Third-App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: third-app
+spec:
+  selector:
+    matchLabels:
+      app: third-app
+  template:
+    metadata:
+      labels:
+        app: third-app
+    spec:
+      containers:
+      - name: third-app-container
+        image: toniocs/third-app:preprod
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+---
+# Service pour Third-App (NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: third-app-service
+spec:
+  type: NodePort
+  selector:
+    app: third-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+    nodePort: 30002
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8080
+    nodePort: 30003
+
+
+```
+
 
 <!-- GETTING STARTED -->
 ## Etape du build
