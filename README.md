@@ -352,6 +352,7 @@ storageClassName : Définit la classe de stockage (e.g., SSD, HDD).
 Un Namespace isole les ressources Kubernetes dans un environnement dédié. Cela permet de structurer un cluster multi-tenant.
 
 Exemple dans le manifest :
+
 Les ressources créées dans un Namespace ne sont accessibles que dans celui-ci sauf configuration explicite.
 
 
