@@ -279,19 +279,28 @@ Le composant Deployment est utilisé pour définir et gérer un ensemble de pods
 
 La gestion des répliques d’une application pour assurer la disponibilité.
 Le déploiement, la mise à jour, et le rollback des versions d’une application.
+
 Exemple dans le manifest :
+
 replicas : Définit le nombre de pods à exécuter simultanément.
+
 selector : Permet de lier les pods créés à un Service.
+
 template : Contient la spécification des pods (conteneurs, variables d'environnement, volumes).
 
 2. Service
 Le Service expose les pods pour permettre la communication réseau entre eux ou avec l’extérieur. Il peut être de plusieurs types :
 
 ClusterIP : Communication interne dans le cluster.
+
 NodePort : Exposition à l’extérieur avec un port statique.
+
 LoadBalancer : Fournit une IP publique (si cloud provider).
+
 Exemple dans le manifest :
+
 ports : Définit les ports internes et externes pour la communication.
+
 selector : Lie le service aux pods en fonction des labels.
 
 3. Ingress
