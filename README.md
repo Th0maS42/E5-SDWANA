@@ -3,7 +3,7 @@ Zenner-Gibeaux Geoffrey Rendu
 
 
 
-<!-- PROJECT LOGO --> <br /> <div align="center"> <h3 align="center">Projet Kubernetes : Applications Python</h3> <p align="center"> 
+<!-- PROJECT LOGO --> <br /><h3 align="center">Projet Kubernetes : Applications Python</h3> <p align="center"> 
 
 
 <!-- ABOUT THE PROJECT -->
