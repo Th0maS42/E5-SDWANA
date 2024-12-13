@@ -20,7 +20,7 @@ Voici la structure du projet:
 ``` yml
 # Déploiement pour Flask
 apiVersion: apps/v1  # Version de l'API Kubernetes utilisée pour définir un déploiement.
-kind: Deployment  # Décrit un objet de type Déploiement, utilisé pour gérer l'état d'une application.
+kind: Deployment  # Gère la création et la résilience des pods, garantit le bon nombre de répliques, et permet des mises à jour progressives (rolling updates) pour éviter les interruptions
 metadata:
   name: flask-app  # Nom unique de ce déploiement, identifiant dans le cluster Kubernetes.
 spec:
@@ -41,11 +41,11 @@ spec:
 ---
 # Service pour Flask (NodePort)
 apiVersion: v1  # Version de l'API pour les services Kubernetes.
-kind: Service  # Objet Service pour exposer une application vers l'extérieur.
+kind: Service  # Permet de regrouper et d'exposer des pods à travers une adresse stable, indépendamment de leur cycle de vie. Simplifie la communication entre applications ou avec des utilisateurs externes.
 metadata:
   name: flask-service  # Nom unique pour identifier ce service.
 spec:
-  type: NodePort  # Type de service permettant un accès depuis un port du nœud.
+  type: NodePort  # Expose le service sur un port spécifique des nœuds du cluster, permettant un accès externe direct. Utile en préprod pour tester la connectivité sans configuration avancée comme un LoadBalancer ou Ingress.
   selector:
     app: flask-app  # Sélectionne les pods correspondants au déploiement Flask.
   ports:
@@ -150,7 +150,7 @@ spec:
 ``` yml
 # Déploiement pour Flask
 apiVersion: apps/v1  # Version de l'API Kubernetes utilisée pour définir un déploiement.
-kind: Deployment  # Objet représentant un déploiement, permettant de gérer la montée en charge de l'application.
+kind: Deployment  # Gère la création et la résilience des pods, garantit le bon nombre de répliques, et permet des mises à jour progressives (rolling updates) pour éviter les interruptions
 metadata:
   name: flask-app  # Nom unique de ce déploiement, permettant son identification dans Kubernetes.
 spec:
@@ -171,7 +171,7 @@ spec:
 ---
 # Service pour Flask (NodePort)
 apiVersion: v1  # Version de l'API Kubernetes pour les services.
-kind: Service  # Objet Service permettant d'exposer l'application au sein ou en dehors du cluster.
+kind: Service  # Permet de regrouper et d'exposer des pods à travers une adresse stable, indépendamment de leur cycle de vie. Simplifie la communication entre applications ou avec des utilisateurs externes.
 metadata:
   name: flask-service  # Nom unique pour identifier ce service.
 spec:
@@ -257,7 +257,7 @@ kind: Service
 metadata:
   name: third-app-service  # Nom du service lié à Third-App.
 spec:
-  type: NodePort  # Type de service permettant un accès externe par un port statique.
+  type: NodePort  # Expose le service sur un port spécifique des nœuds du cluster, permettant un accès externe direct. Utile en préprod pour tester la connectivité sans configuration avancée comme un LoadBalancer ou Ingress.
   selector:
     app: third-app
   ports:
