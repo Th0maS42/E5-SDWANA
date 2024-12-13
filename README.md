@@ -17,7 +17,7 @@ Voici la structure du projet:
 
  Contenu du Manifest de production
 
-``` bash
+``` yaml
 # Déploiement pour Flask
 apiVersion: apps/v1
 kind: Deployment
