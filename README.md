@@ -17,8 +17,6 @@ Voici la structure du projet:
 ![alt text](Structure.png)
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
  . Contenu du manifest de production
 ``` bash
 # Déploiement pour Flask
@@ -146,6 +144,7 @@ spec:
     nodePort: 30009
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
  . Contenu du manifest de préproduction
 ``` bash
