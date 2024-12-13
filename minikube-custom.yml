@@ -1,0 +1,83 @@
+#cloud-config
+
+# Mettre le bon timezone
+timezone: Europe/Paris
+
+# Créer un utilisateur (ubuntu)
+users:
+- name: ubuntu
+  gecos: Ubuntu User
+  shell: /bin/bash
+  home: /home/ubuntu
+  groups: users,admin,wheel,lxd,docker
+  sudo: ALL=(ALL) NOPASSWD:ALL
+
+# Update et upgrade
+package_update: true
+package_upgrade: true
+
+# Installation des packages nécessaire (uidmap pour docker rootless)
+packages:
+  - apt-transport-https
+  - bash-completion
+  - ca-certificates
+  - curl
+  - git
+  - uidmap
+
+runcmd:
+  # Connexion avec mdp via vscode
+  - sudo sed -i 's/no/Yes/g' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+  - sudo service ssh restart
+  - echo 'ubuntu:jojo' | chpasswd
+  # Installation de Docker
+  - curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+  - curl -fsSL https://get.docker.com/rootless --force | sh
+  - systemctl start docker
+  - systemctl enable docker
+  # Installation de minikube via le debian package
+  - curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb && sudo dpkg -i minikube_latest_amd64.deb
+  - systemctl start minikube
+  - systemctl enable minikube
+  # Installation de la cli kubectl via snap (plus simple et rapide) car plus dispo via apt 
+  - snap install kubectl --classic
+  # Démarrage du cluster
+  - sudo -u ubuntu minikube start --driver=docker --listen-address=0.0.0.0 --memory=max --cpus=max --kubernetes-version=v1.31.0
+  - sudo systemctl enable minikube
+
+# Installation de l'autocompletion
+write_files:
+- path: /home/ubuntu/.bashrc
+  defer: true
+  content: |
+    if command -v minikube &>/dev/null
+    then
+      eval "$(minikube completion bash)"
+    fi
+    source /etc/bash_completion
+    source <(minikube completion bash)
+    alias kubectl="minikube kubectl --"
+    alias k="minikube kubectl --"
+    alias k="kubectl"
+    complete -F __start_kubectl k
+    source <(kubectl completion bash)
+  permissions: '0755'
+- path: /etc/systemd/system/minikube.service
+  defer: true
+  content: |
+    [Unit]
+    Description=Kickoff Minikube Cluster
+    After=docker.service
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/local/bin/minikube start --listen-address=0.0.0.0 --memory=max --cpus=max --kubernetes-version=v1.31.0
+    RemainAfterExit=true
+    ExecStop=/usr/local/bin/minikube stop
+    StandardOutput=journal
+    User=ubuntu
+    Group=ubuntu
+
+    [Install]
+    WantedBy=multi-user.target
+  permissions: '0755'
