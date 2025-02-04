@@ -1,276 +1,236 @@
 # E5-CISSP
 Zenner-Gibeaux Geoffrey Rendu
 
-
-
-<!-- PROJECT LOGO --> <br /><h3 align="center">Projet Kubernetes : Applications Python</h3>
+<!-- PROJECT LOGO --> <br /><h3 align="center">Projet Kubernetes</h3>
 
 
 <!-- ABOUT THE PROJECT -->
 ## Struture du projet
 
-Voici la structure du projet:
-
-
-![alt text](Structure.png)
-
-
  Contenu du Manifest de production
 
 ``` yml
-# Déploiement pour Flask
-apiVersion: apps/v1  # Version de l'API Kubernetes utilisée pour définir un déploiement.
-kind: Deployment  # Gère la création et la résilience des pods, garantit le bon nombre de répliques, et permet des mises à jour progressives (rolling updates) pour éviter les interruptions
+apiVersion: v1  # Version de l'API Kubernetes pour les objets de type Namespace
+kind: Namespace  # Définition d'un espace de noms pour isoler les ressources
 metadata:
-  name: flask-app  # Nom unique de ce déploiement, identifiant dans le cluster Kubernetes.
+  name: privrocket-preprod  # Nom du namespace
+  labels:
+    name: privrocket-preprod  # Étiquette pour identifier le namespace
+    app: privrocket  # Étiquette pour associer les ressources à l'application PrivRocket
+---
+apiVersion: v1  # Version de l'API Kubernetes pour les objets de type ConfigMap
+kind: ConfigMap  # Définition d'une ConfigMap pour stocker des configurations non sensibles
+metadata:
+  name: privrocket-app-configmap  # Nom de la ConfigMap
+  namespace: privrocket-preprod  # Namespace où la ConfigMap est déployée
+data:
+  DEMO_MODE: "True"  # Mode démo activé
+  DEBUG: "True"  # Mode debug activé
+---
+apiVersion: apps/v1  # Version de l'API Kubernetes pour les objets de type Deployment
+kind: Deployment  # Définition d'un déploiement pour gérer les pods
+metadata:
+  name: privrocket-deployment  # Nom du déploiement
+  namespace: privrocket-preprod  # Namespace où le déploiement est créé
+  labels:
+    app: privrocket-deployment  # Étiquette pour identifier le déploiement
 spec:
+  replicas: 1  # Nombre de réplicas (instances de pod)
   selector:
     matchLabels:
-      app: flask-app  # Sélectionne les pods ayant le label "app: flask-app".
+      app: privrocket-app  # Sélecteur pour associer les pods au déploiement
   template:
     metadata:
       labels:
-        app: flask-app  # Labels attribués aux pods créés par ce déploiement.
+        app: privrocket-app  # Étiquettes appliquées aux pods créés
     spec:
       containers:
-      - name: flask-container  # Nom du conteneur pour identifier dans les logs ou métriques.
-        image: toniocs/flask-app:prod  # Image Docker utilisée pour le conteneur (version de production).
-        imagePullPolicy: Never  # Indique que l'image ne sera pas téléchargée depuis un registre.
+      - name: privrocket-app  # Nom du conteneur
+        image: th0m8s/priv-rocket-ecommerce-main:prod  # Image Docker utilisée
         ports:
-        - containerPort: 5000  # Port exposé par le conteneur (Flask écoute généralement sur ce port).
+          - containerPort: 80  # Port exposé par le conteneur
+        resources:
+          requests:
+            memory: 64Mi  # Quantité minimale de mémoire demandée
+            cpu: 100m  # Quantité minimale de CPU demandée
+          limits:
+            memory: 128Mi  # Limite maximale de mémoire autorisée
+            cpu: 200m  # Limite maximale de CPU autorisée
+        envFrom:
+        - configMapRef:
+            name: privrocket-app-configmap  # Référence à la ConfigMap pour injecter des variables d'environnement
+        env:
+          - name: STRIPE_PUBLISHABLE_KEY  # Clé publique Stripe injectée depuis un Secret
+            valueFrom:
+              secretKeyRef:
+                name: stripe-secret
+                key: STRIPE_PUBLISHABLE_KEY
+          - name: STRIPE_SECRET_KEY  # Clé secrète Stripe injectée depuis un Secret
+            valueFrom:
+              secretKeyRef:
+                name: stripe-secret
+                key: STRIPE_SECRET_KEY
 ---
-# Service pour Flask (NodePort)
-apiVersion: v1  # Version de l'API pour les services Kubernetes.
-kind: Service  # Permet de regrouper et d'exposer des pods à travers une adresse stable, indépendamment de leur cycle de vie. Simplifie la communication entre applications ou avec des utilisateurs externes.
+apiVersion: v1  # Version de l'API Kubernetes pour les objets de type Secret
+kind: Secret  # Définition d'un secret pour stocker des informations sensibles
 metadata:
-  name: flask-service  # Nom unique pour identifier ce service.
+  name: stripe-secret  # Nom du secret
+type: Opaque  # Type de secret (opaque pour des données arbitraires)
+stringData:
+  STRIPE_PUBLISHABLE_KEY: pk_test_51QhZXSRvHxyjSySQorUMA1T2d5ZlvGWg1SX8CErNy8e3MelMghenIZG9ZPrdv4kxXtadCfbv3oBKvcDTBTU0xFA200t7v2PYl3  # Clé publique Stripe
+  STRIPE_SECRET_KEY: sk_test_51QhZXSRvHxyjSySQ51yiCCUlq1pdwyKJjhUKtGZg1oBpAtiQuhoL65ZeGWy4r60TVCrYUw2rHeEgpR4RUi4aYJM600JtWIBO3M  # Clé secrète Stripe
+---
+apiVersion: v1  # Version de l'API Kubernetes pour les objets de type Service
+kind: Service  # Définition d'un service pour exposer l'application
+metadata:
+  name: privrocket-deployment  # Nom du service
+  labels:
+    app: privrocket-svc  # Étiquette pour identifier le service
 spec:
-  type: NodePort  # Expose le service sur un port spécifique des nœuds du cluster, permettant un accès externe direct. Utile en préprod pour tester la connectivité sans configuration avancée comme un LoadBalancer ou Ingress.
+  type: LoadBalancer  # Type de service pour exposer l'application à l'extérieur du cluster
   selector:
-    app: flask-app  # Sélectionne les pods correspondants au déploiement Flask.
+    app: privrocket-app  # Sélecteur pour associer le service aux pods
   ports:
-  - name: http  # Nom logique pour identifier ce port.
-    protocol: TCP  # Protocole utilisé.
-    port: 80  # Port sur lequel le service sera accessible.
-    targetPort: 5000  # Port cible exposé par le conteneur.
-    nodePort: 30006  # Port statique utilisé sur le nœud Kubernetes.
-  - name: https
-    protocol: TCP
-    port: 443  # Port sécurisé pour HTTPS.
-    targetPort: 8080  # Peut être utilisé pour une future configuration sécurisée.
-    nodePort: 30007  # Port statique supplémentaire pour HTTPS.
+  - port: 80  # Port sur lequel le service écoute
+    protocol: TCP  # Protocole utilisé
+    targetPort: 80  # Port sur lequel le conteneur écoute
 ---
-# Déploiement pour FastAPI
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: networking.k8s.io/v1  # Version de l'API Kubernetes pour les objets de type Ingress
+kind: Ingress  # Définition d'un ingress pour gérer l'accès HTTP/HTTPS externe
 metadata:
-  name: fastapi-app  # Nom du déploiement pour l'application FastAPI.
+  name: ingress-privrocketapp  # Nom de l'ingress
 spec:
-  selector:
-    matchLabels:
-      app: fastapi-app
-  template:
-    metadata:
-      labels:
-        app: fastapi-app
-    spec:
-      containers:
-      - name: fastapi-container  # Nom du conteneur pour FastAPI.
-        image: toniocs/fast-api:prod  # Image Docker contenant l'application FastAPI.
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 8000  # FastAPI écoute habituellement sur ce port.
+  defaultBackend:
+    service:
+      name: privrocket-service  # Service par défaut vers lequel router le trafic (nom semble incorrect, devrait correspondre au service ci-dessus)
+      port:
+        number: 7777  # Port du service (incohérent avec le port 80 du service)
 ---
-# Service pour FastAPI (LoadBalancer)
-apiVersion: v1
-kind: Service
+apiVersion: autoscaling/v2  # Version de l'API Kubernetes pour les objets de type HorizontalPodAutoscaler
+kind: HorizontalPodAutoscaler  # Définition d'un autoscaler pour ajuster le nombre de pods
 metadata:
-  name: fastapi-service
+  name: horizontal-pod  # Nom de l'autoscaler
 spec:
-  type: LoadBalancer  # Service accessible via une IP publique attribuée par le cloud provider.
-  selector:
-    app: fastapi-app
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 8000  # Route les requêtes HTTP vers le port de FastAPI.
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 8000
----
-# Déploiement pour Third-App
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: third-app  # Déploiement pour une troisième application (Third-App).
-spec:
-  selector:
-    matchLabels:
-      app: third-app
-  template:
-    metadata:
-      labels:
-        app: third-app
-    spec:
-      containers:
-      - name: third-app-container  # Conteneur pour Third-App.
-        image: toniocs/third-app:prod
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 8080  # Port habituellement utilisé pour une application web.
----
-# Service pour Third-App (NodePort)
-apiVersion: v1
-kind: Service
-metadata:
-  name: third-app-service
-spec:
-  type: NodePort
-  selector:
-    app: third-app
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 8080
-    nodePort: 30008  # Port NodePort exposé pour HTTP.
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 8080
-    nodePort: 30009  # Port NodePort exposé pour HTTPS.
-
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: privrocket-deployment  # Cible l'objet Deployment pour l'autoscaling
+  minReplicas: 1  # Nombre minimum de pods
+  maxReplicas: 50  # Nombre maximum de pods
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0  # Pas de délai de stabilisation pour l'augmentation des pods
+      policies:
+      - type: Percent
+        value: 100  # Augmentation de 100% des pods en 5 secondes
+        periodSeconds: 5
+      - type: Pods
+        value: 4  # Augmentation de 4 pods en 5 secondes
+        periodSeconds: 5
+      selectPolicy: Max  # Applique la politique la plus agressive
+    scaleDown:
+      stabilizationWindowSeconds: 5  # Délai de 5 secondes avant de réduire le nombre de pods
+      policies:
+      - type: Percent
+        value: 50  # Réduction de 50% des pods en 5 secondes
+        periodSeconds: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50  # Cible d'utilisation moyenne du CPU à 50%
+status:
+  observedGeneration: 1  # Génération observée de l'autoscaler
+  currentReplicas: 1  # Nombre actuel de pods
+  desiredReplicas: 1  # Nombre de pods souhaité
+  currentMetrics:
+  - type: Resource
+    resource:
+      name: cpu
+      current:
+        averageUtilization: 0  # Utilisation actuelle moyenne du CPU à 0%
+        averageValue: 0  # Valeur actuelle moyenne du CPU
 
 ```
 
- Contenu du Manifest de préproduction
+ Contenu du Manifest du test de l'API
 
 ``` yml
-# Déploiement pour Flask
-apiVersion: apps/v1  # Version de l'API Kubernetes utilisée pour définir un déploiement.
-kind: Deployment  # Gère la création et la résilience des pods, garantit le bon nombre de répliques, et permet des mises à jour progressives (rolling updates) pour éviter les interruptions
+apiVersion: apps/v1  # Version de l'API Kubernetes pour les objets de type Deployment
+kind: Deployment  # Définition d'un déploiement Kubernetes
 metadata:
-  name: flask-app  # Nom unique de ce déploiement, permettant son identification dans Kubernetes.
+  name: stripe-flask-app  # Nom du déploiement
+  labels:
+    app: stripe-flask-app  # Étiquette pour identifier les ressources associées
 spec:
   selector:
     matchLabels:
-      app: flask-app  # Sélectionne les pods ayant ce label pour gérer leur état.
+      app: stripe-flask-app  # Sélecteur pour faire correspondre les pods avec cette étiquette
   template:
     metadata:
       labels:
-        app: flask-app  # Labels attribués aux pods créés par ce déploiement.
+        app: stripe-flask-app  # Étiquettes appliquées aux pods créés par ce déploiement
     spec:
       containers:
-      - name: flask-container  # Nom donné au conteneur dans les pods.
-        image: toniocs/flask-app:preprod  # Image Docker utilisée, version préproduction.
-        imagePullPolicy: Never  # Indique que l'image doit être déjà disponible localement.
+      - name: stripe-flask-app  # Nom du conteneur
+        image: th0m8s/stripe-app:prod  # Image Docker à utiliser pour ce conteneur
         ports:
-        - containerPort: 5000  # Port exposé par le conteneur Flask.
+          - containerPort: 4242  # Port exposé par le conteneur
+        resources:
+          requests:
+            memory: 64Mi  # Quantité minimale de mémoire demandée
+            cpu: 100m  # Quantité minimale de CPU demandée
+          limits:
+            memory: 128Mi  # Limite maximale de mémoire autorisée
+            cpu: 200m  # Limite maximale de CPU autorisée
+        env:
+          # Variables d'environnement injectées depuis un secret Kubernetes
+          - name: STRIPE_PUBLISHABLE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: stripe-secret-app  # Nom de l'objet Secret
+                key: STRIPE_PUBLISHABLE_KEY  # Clé spécifique dans le secret
+          - name: STRIPE_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: stripe-secret-app
+                key: STRIPE_SECRET_KEY
 ---
-# Service pour Flask (NodePort)
-apiVersion: v1  # Version de l'API Kubernetes pour les services.
-kind: Service  # Permet de regrouper et d'exposer des pods à travers une adresse stable, indépendamment de leur cycle de vie. Simplifie la communication entre applications ou avec des utilisateurs externes.
+apiVersion: v1  # Version de l'API Kubernetes pour les objets de type Service
+kind: Service  # Définition d'un service pour exposer l'application
 metadata:
-  name: flask-service  # Nom unique pour identifier ce service.
+  name: stripe-flask-service  # Nom du service
 spec:
-  type: NodePort  # Permet l'accès externe via un port spécifique du nœud Kubernetes.
+  type: NodePort  # Type de service exposé sur un port du noeud
   selector:
-    app: flask-app  # Lien avec les pods ayant le label "app: flask-app".
+    app: stripe-flask-app  # Associe ce service aux pods avec cette étiquette
   ports:
-  - name: http  # Nom logique pour identifier ce port.
-    protocol: TCP  # Protocole utilisé pour la communication réseau.
-    port: 80  # Port sur lequel le service écoute.
-    targetPort: 5000  # Redirection vers le port du conteneur.
-    nodePort: 30001  # Port accessible à l'extérieur du cluster pour HTTP.
-  - name: https
-    protocol: TCP
-    port: 443  # Port sécurisé pour HTTPS.
-    targetPort: 8080  # Redirection vers un port différent pour la communication sécurisée.
-    nodePort: 30004  # Port accessible à l'extérieur pour HTTPS.
+    - port: 4242  # Port sur lequel le service écoute
+      protocol: TCP  # Protocole utilisé
+      targetPort: 4242  # Port sur lequel le conteneur écoute
 ---
-# Déploiement pour FastAPI
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1  # Version de l'API Kubernetes pour les objets de type Secret
+kind: Secret  # Définition d'un secret pour stocker des informations sensibles
 metadata:
-  name: fastapi-app  # Nom de l'application FastAPI pour ce déploiement.
-spec:
-  selector:
-    matchLabels:
-      app: fastapi-app
-  template:
-    metadata:
-      labels:
-        app: fastapi-app
-    spec:
-      containers:
-      - name: fastapi-container  # Nom donné au conteneur FastAPI.
-        image: toniocs/fast-api:preprod  # Image Docker, version préproduction.
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 8000  # Port sur lequel FastAPI écoute.
+  name: stripe-secret-app  # Nom du secret
+type: Opaque  # Type de secret (opaque pour des données arbitraires)
+stringData:
+  STRIPE_PUBLISHABLE_KEY: pk_test_51QhZXSRvHxyjSySQorUMA1T2d5ZlvGWg1SX8CErNy8e3MelMghenIZG9ZPrdv4kxXtadCfbv3oBKvcDTBTU0xFA200t7v2PYl3  # Clé publique Stripe
+  STRIPE_SECRET_KEY: sk_test_51QhZXSRvHxyjSySQ51yiCCUlq1pdwyKJjhUKtGZg1oBpAtiQuhoL65ZeGWy4r60TVCrYUw2rHeEgpR4RUi4aYJM600JtWIBO3M  # Clé secrète Stripe
 ---
-# Service pour FastAPI (LoadBalancer)
-apiVersion: v1
-kind: Service
+apiVersion: networking.k8s.io/v1  # Version de l'API Kubernetes pour les objets de type Ingress
+kind: Ingress  # Définition d'un ingress pour gérer l'accès HTTP/HTTPS externe
 metadata:
-  name: fastapi-service  # Nom du service associé à l'application FastAPI.
+  name: stripe-checkout-ingress  # Nom de l'ingress
 spec:
-  type: LoadBalancer  # Fournit une adresse IP publique pour accéder à l'application.
-  selector:
-    app: fastapi-app
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80  # Port d'écoute pour HTTP.
-    targetPort: 8000  # Redirection vers le port exposé par le conteneur.
-  - name: https
-    protocol: TCP
-    port: 443  # Port d'écoute pour HTTPS.
-    targetPort: 8000  # Redirection également vers FastAPI pour HTTPS.
----
-# Déploiement pour Third-App
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: third-app  # Nom de l'application Third-App pour ce déploiement.
-spec:
-  selector:
-    matchLabels:
-      app: third-app
-  template:
-    metadata:
-      labels:
-        app: third-app
-    spec:
-      containers:
-      - name: third-app-container  # Nom donné au conteneur Third-App.
-        image: toniocs/third-app:preprod  # Image Docker, version préproduction.
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 8080  # Port exposé par le conteneur Third-App.
----
-# Service pour Third-App (NodePort)
-apiVersion: v1
-kind: Service
-metadata:
-  name: third-app-service  # Nom du service lié à Third-App.
-spec:
-  type: NodePort  # Expose le service sur un port spécifique des nœuds du cluster, permettant un accès externe direct. Utile en préprod pour tester la connectivité sans configuration avancée comme un LoadBalancer ou Ingress.
-  selector:
-    app: third-app
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80  # Port d'écoute pour HTTP.
-    targetPort: 8080  # Redirection vers le conteneur.
-    nodePort: 30002  # Port NodePort exposé pour HTTP.
-  - name: https
-    protocol: TCP
-    port: 443  # Port d'écoute pour HTTPS.
-    targetPort: 8080  # Redirection vers le conteneur pour HTTPS.
-    nodePort: 30003  # Port NodePort exposé pour HTTPS.
+  defaultBackend:
+    service:
+      name: stripe-flask-service  # Service par défaut vers lequel router le trafic
+      port:
+        number: 7777 
+
 
 ```
 
