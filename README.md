@@ -1,8 +1,6 @@
 # E5-CISSP
-Zenner-Gibeaux Geoffrey Rendu
-
+Zenner-Gibeaux Geoffrey
 <!-- PROJECT LOGO --> <br /><h3 align="center">Projet Kubernetes</h3>
-
 
 <!-- ABOUT THE PROJECT -->
 ## Struture du projet
